@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    reviewers: []
+    labels:
+      - dependencies
+    # Group minor + patch updates into one PR to reduce noise
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    # Security updates are always opened immediately regardless of schedule
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels:
+      - ci

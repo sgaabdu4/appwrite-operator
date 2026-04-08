@@ -1,15 +1,40 @@
 {
     "name": "appwrite-operator-mcp",
     "version": "0.1.0",
-    "private": true,
+    "description": "MCP server that wraps mcp-server-appwrite behind 4 smart tools with search, write protection, and context-efficient resource links.",
     "type": "module",
+    "main": "build/src/index.js",
+    "bin": {
+        "appwrite-operator-mcp": "build/src/index.js"
+    },
+    "files": [
+        "build/src",
+        "README.md",
+        "LICENSE"
+    ],
     "engines": {
         "node": ">=20"
+    },
+    "keywords": [
+        "mcp",
+        "model-context-protocol",
+        "appwrite",
+        "ai",
+        "claude",
+        "copilot",
+        "llm",
+        "mcp-server"
+    ],
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/sgaabdu4/appwrite-operator.git"
     },
     "scripts": {
         "build": "tsc -p tsconfig.json",
         "check": "tsc -p tsconfig.json --noEmit",
         "dev": "tsx src/index.ts",
+        "prepublishOnly": "npm run build",
         "start": "node build/src/index.js",
         "test": "tsx --test tests/**/*.test.ts"
     },
