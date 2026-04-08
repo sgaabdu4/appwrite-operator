@@ -19,13 +19,10 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    # Skip version-bump commits to avoid infinite loop
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Full history needed to read commits since last tag
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v6
         with:
@@ -51,42 +48,50 @@ jobs:
       - name: Security audit
         run: npm audit --audit-level=high
 
-      - name: Configure git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Bump version and tag
+      - name: Determine next version
         id: version
         run: |
-          # Determine bump type from commit messages since last tag
+          # Get current version from last tag, default to 0.0.0
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           if [ -z "$LAST_TAG" ]; then
-            BUMP="patch"
+            CURRENT="0.0.0"
           else
-            COMMITS=$(git log "$LAST_TAG"..HEAD --pretty=format:"%s")
-            if echo "$COMMITS" | grep -qiE "^(feat|feature)(\(.+\))?!:|BREAKING CHANGE"; then
-              BUMP="major"
-            elif echo "$COMMITS" | grep -qiE "^feat(\(.+\))?:"; then
-              BUMP="minor"
-            else
-              BUMP="patch"
-            fi
+            CURRENT="${LAST_TAG#v}"
           fi
-          echo "bump=$BUMP" >> "$GITHUB_OUTPUT"
-          NEW_VERSION=$(npm version "$BUMP" -m "chore(release): v%s [skip ci]")
+
+          # Parse semver
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+
+          # Determine bump type from commit messages since last tag
+          if [ -n "$LAST_TAG" ]; then
+            COMMITS=$(git log "$LAST_TAG"..HEAD --pretty=format:"%s")
+          else
+            COMMITS=$(git log --pretty=format:"%s")
+          fi
+
+          if echo "$COMMITS" | grep -qiE "^(feat|feature)(\(.+\))?!:|BREAKING CHANGE"; then
+            MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
+          elif echo "$COMMITS" | grep -qiE "^feat(\(.+\))?:"; then
+            MINOR=$((MINOR + 1)); PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+
+          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
           echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "npm_version=${MAJOR}.${MINOR}.${PATCH}" >> "$GITHUB_OUTPUT"
+          echo "Releasing $NEW_VERSION"
 
-      - name: Push version commit and tag
-        run: git push && git push --tags
-
-      - name: Create GitHub Release with changelog
-        run: gh release create "$VERSION" --generate-notes --title "$VERSION"
+      - name: Create tag and GitHub Release
+        run: gh release create "$VERSION" --generate-notes --title "$VERSION" --target "${{ github.sha }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.version.outputs.version }}
 
       - name: Publish to npm with provenance
-        run: npm publish --access public --provenance
+        run: |
+          npm pkg set version="${NPM_VERSION}"
+          npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_VERSION: ${{ steps.version.outputs.npm_version }}

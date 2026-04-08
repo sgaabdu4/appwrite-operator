@@ -101,7 +101,7 @@ graph LR
 | Workflow | Trigger | Purpose |
 |---|---|---|
 | [ci.yml](.github/workflows/ci.yml) | Every PR and push to `main` | Type-check, build, tests (Node 20 + 22), `npm audit` |
-| [publish.yml](.github/workflows/publish.yml) | Push to `main` | Auto-bump version via [conventional commits](https://www.conventionalcommits.org/), tag, publish to npm with provenance |
+| [publish.yml](.github/workflows/publish.yml) | Push to `main` | Auto-determine version via [conventional commits](https://www.conventionalcommits.org/), create tag + GitHub Release, publish to npm with provenance |
 | [dependabot.yml](.github/dependabot.yml) | Weekly + immediate for vulnerabilities | Opens PRs for dependency updates |
 | [auto-merge-dependabot.yml](.github/workflows/auto-merge-dependabot.yml) | Dependabot PRs | Auto-approves and squash-merges patch/minor updates. Major bumps need manual review. |
 
