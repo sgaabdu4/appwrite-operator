@@ -89,10 +89,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.version.outputs.version }}
 
-      - name: Publish to npm with provenance
+      - name: Publish to npm (Trusted Publishing + provenance)
         run: |
           npm pkg set version="${NPM_VERSION}"
           npm publish --access public --provenance
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_VERSION: ${{ steps.version.outputs.npm_version }}
