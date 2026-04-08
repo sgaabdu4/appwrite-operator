@@ -139,10 +139,12 @@ export class ManagedBackend {
     }
 
     getStatus(): BackendStatus {
+        const services = [...new Set(this.catalog.map((entry) => entry.serviceName))].sort();
         const status: BackendStatus = {
             connected: this.client !== null,
             id: this.config.id,
             label: this.getLabel(),
+            services,
             toolCount: this.catalog.length,
         };
 

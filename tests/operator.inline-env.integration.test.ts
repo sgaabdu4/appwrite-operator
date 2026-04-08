@@ -18,6 +18,7 @@ test('operator supports direct Appwrite env mode without a config file', async (
     command: 'tsx',
     cwd: projectRoot,
     env: {
+      ...process.env,
       APPWRITE_API_KEY: 'inline-key',
       APPWRITE_ENDPOINT: 'https://inline.example/v1',
       APPWRITE_OPERATOR_BACKEND_ARGS_JSON: JSON.stringify([mockBackendEntry]),
@@ -42,5 +43,5 @@ test('operator supports direct Appwrite env mode without a config file', async (
     .map((item) => item.text)
     .join('\n');
 
-  assert.match(text, /appwrite \(Appwrite\), connected, tools=4/i);
+  assert.match(text, /appwrite \(Appwrite\), connected, tools=4, \d+ services/i);
 });

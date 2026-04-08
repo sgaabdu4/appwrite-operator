@@ -52,6 +52,7 @@ export type BackendStatus = {
     label: string;
     lastConnectedAt?: string;
     lastError?: string;
+    services: string[];
     toolCount: number;
 };
 

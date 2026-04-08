@@ -100,6 +100,8 @@ export function searchCatalog(
         (options.serviceHints ?? []).map((entry) => normalizeToken(entry)),
     );
     const backendIdSet = options.backendIds ? new Set(options.backendIds) : null;
+    const queryTokens = tokenize(options.query);
+    const queryLower = options.query.toLowerCase();
 
     const ranked = catalog
         .filter((entry) => {
@@ -125,7 +127,7 @@ export function searchCatalog(
             return {
                 ...entry,
                 missingRequired,
-                score: computeScore(entry, options.query, serviceHintSet, missingRequired),
+                score: computeScore(entry, queryTokens, queryLower, serviceHintSet, missingRequired),
             } satisfies SearchResult;
         })
         .filter((entry) => entry.score > 0)
@@ -166,6 +168,7 @@ export function pickMatchingArguments(
 export function tokenize(value: string): string[] {
     return [...new Set(
         value
+            .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
             .toLowerCase()
             .split(/[^a-z0-9]+/)
             .filter((token) => token.length >= 2),
@@ -189,11 +192,11 @@ function classifyVerb(actionVerb: string): ToolClassification {
 
 function computeScore(
     entry: CatalogEntry,
-    query: string,
+    queryTokens: string[],
+    queryLower: string,
     serviceHints: Set<string>,
     missingRequired: string[],
 ): number {
-    const queryTokens = tokenize(query);
     const haystackTokens = new Set(
         tokenize(
             [
@@ -206,9 +209,21 @@ function computeScore(
     );
 
     let score = 0;
-    for (const token of queryTokens) {
-        if (haystackTokens.has(token)) {
+    let needsSubstring = false;
+    for (const qToken of queryTokens) {
+        if (haystackTokens.has(qToken)) {
             score += 5;
+        } else {
+            needsSubstring = true;
+        }
+    }
+
+    if (needsSubstring) {
+        const haystackArray = [...haystackTokens];
+        for (const qToken of queryTokens) {
+            if (!haystackTokens.has(qToken) && haystackArray.some((hToken) => hToken.includes(qToken) || qToken.includes(hToken))) {
+                score += 3;
+            }
         }
     }
 
@@ -226,7 +241,7 @@ function computeScore(
         score -= missingRequired.length * 6;
     }
 
-    if (query.toLowerCase().includes(entry.toolName.toLowerCase())) {
+    if (queryLower.includes(entry.toolName.toLowerCase())) {
         score += 10;
     }
 
@@ -243,5 +258,5 @@ function isStringRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function normalizeToken(value: string): string {
-    return value.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, '');
 }
