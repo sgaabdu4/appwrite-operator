@@ -1,0 +1,26 @@
+{
+    "name": "appwrite-operator-mcp",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "engines": {
+        "node": ">=20"
+    },
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "check": "tsc -p tsconfig.json --noEmit",
+        "dev": "tsx src/index.ts",
+        "start": "node build/src/index.js",
+        "test": "tsx --test tests/**/*.test.ts"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/client": "2.0.0-alpha.2",
+        "@modelcontextprotocol/server": "2.0.0-alpha.2",
+        "zod": "4.3.6"
+    },
+    "devDependencies": {
+        "@types/node": "25.5.2",
+        "tsx": "4.21.0",
+        "typescript": "6.0.2"
+    }
+}
