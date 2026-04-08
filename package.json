@@ -28,7 +28,7 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/sgaabdu4/appwrite-operator.git"
+        "url": "git+https://github.com/sgaabdu4/appwrite-operator.git"
     },
     "scripts": {
         "build": "tsc -p tsconfig.json",
