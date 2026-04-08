@@ -1,10 +1,11 @@
-import type {
-    CatalogEntry,
-    InvestigationPlan,
-    InvestigationStep,
-    JsonObject,
-    SearchResult,
-    ToolClassification,
+import {
+    isObject,
+    type CatalogEntry,
+    type InvestigationPlan,
+    type InvestigationStep,
+    type JsonObject,
+    type SearchResult,
+    type ToolClassification,
 } from './types.js';
 
 const VERBS = ['list', 'get', 'create', 'update', 'delete'] as const;
@@ -39,9 +40,17 @@ export function buildHeuristicInvestigationPlan(
         limit: options.candidateLimit,
         query: options.goal,
         serviceHints: options.serviceHints,
-    }).filter((entry) => entry.classification === 'read');
+    });
 
-    const runnable = matches.filter((entry) => entry.missingRequired.length === 0);
+    return buildHeuristicPlanFromCandidates(matches, options);
+}
+
+export function buildHeuristicPlanFromCandidates(
+    candidates: SearchResult[],
+    options: { argumentHints: JsonObject | undefined; maxSteps: number },
+): InvestigationPlan {
+    const readOnly = candidates.filter((entry) => entry.classification === 'read');
+    const runnable = readOnly.filter((entry) => entry.missingRequired.length === 0);
     const selected = runnable.slice(0, options.maxSteps);
 
     const steps: InvestigationStep[] = selected.map((entry) => ({
@@ -250,11 +259,7 @@ function computeScore(
 
 function hasSchemaProperty(entry: CatalogEntry, key: string): boolean {
     const properties = entry.inputSchema.properties;
-    return isStringRecord(properties) && Object.hasOwn(properties, key);
-}
-
-function isStringRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
+    return isObject(properties) && Object.hasOwn(properties, key);
 }
 
 function normalizeToken(value: string): string {

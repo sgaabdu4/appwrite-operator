@@ -1,13 +1,14 @@
 import type { CallToolResult } from '@modelcontextprotocol/client';
 
-import { buildHeuristicInvestigationPlan, pickMatchingArguments, searchCatalog } from './heuristics.js';
-import type {
-    CatalogEntry,
-    InvestigationPlan,
-    InvestigationStep,
-    InvestigationStepResult,
-    JsonObject,
-    SamplingPlanShape,
+import { buildHeuristicPlanFromCandidates, pickMatchingArguments, searchCatalog } from './heuristics.js';
+import {
+    isObject,
+    type CatalogEntry,
+    type InvestigationPlan,
+    type InvestigationStep,
+    type InvestigationStepResult,
+    type JsonObject,
+    type SamplingPlanShape,
 } from './types.js';
 
 export type InvestigationPlannerOptions = {
@@ -26,20 +27,6 @@ export type SamplingFunction = (prompt: string) => Promise<string | null>;
 export async function planInvestigation(
     options: InvestigationPlannerOptions,
 ): Promise<InvestigationPlan> {
-    const heuristicPlan = buildHeuristicInvestigationPlan({
-        argumentHints: options.argumentHints,
-        backendIds: options.backendIds,
-        candidateLimit: options.candidateLimit,
-        catalog: options.catalog,
-        goal: options.goal,
-        maxSteps: options.maxSteps,
-        serviceHints: options.serviceHints,
-    });
-
-    if (!options.sampler) {
-        return heuristicPlan;
-    }
-
     const candidateTools = searchCatalog(options.catalog, {
         argumentHints: options.argumentHints,
         backendIds: options.backendIds,
@@ -48,6 +35,12 @@ export async function planInvestigation(
         query: options.goal,
         serviceHints: options.serviceHints,
     });
+
+    const heuristicPlan = buildHeuristicPlanFromCandidates(candidateTools, options);
+
+    if (!options.sampler) {
+        return heuristicPlan;
+    }
 
     const sampled = await buildSamplingPlan({
         argumentHints: options.argumentHints,
@@ -317,6 +310,3 @@ function sanitizeArguments(
     return sanitized;
 }
 
-function isObject(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
-}

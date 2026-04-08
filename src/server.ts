@@ -7,12 +7,13 @@ import { searchCatalog } from './heuristics.js';
 import { InvestigationStore } from './investigationStore.js';
 import { executeInvestigationPlan, planInvestigation } from './planner.js';
 import { ResultStore } from './resultStore.js';
-import type {
-    InvestigationRecord,
-    JsonObject,
-    JsonValue,
-    LoadedOperatorConfig,
-    SearchResult,
+import {
+    isObject,
+    type InvestigationRecord,
+    type JsonObject,
+    type JsonValue,
+    type LoadedOperatorConfig,
+    type SearchResult,
 } from './types.js';
 
 const instructions = [
@@ -20,6 +21,9 @@ const instructions = [
     'Pass tool arguments as a JSON object in the "arguments" field.',
     'Non-read-only tools need confirmWrite=true.',
 ].join(' ');
+
+const EMPTY_TEXTS = new Set(['', 'null', 'none', 'None', '{}', '[]']);
+const PREVIEW_THRESHOLD = 800;
 
 const jsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
     z.union([
@@ -327,9 +331,6 @@ export function createOperatorServer(
                 };
             }
 
-            const EMPTY_TEXTS = new Set(['', 'null', 'none', 'None', '{}', '[]']);
-            const PREVIEW_THRESHOLD = 800;
-
             const fullText = result.content
                 .filter((item): item is { text: string; type: 'text' } => item.type === 'text')
                 .map((item) => item.text)
@@ -397,12 +398,11 @@ export function createOperatorServer(
                 argumentHints: jsonObjectSchema.optional(),
                 backendIds: z.array(z.string()).optional(),
                 goal: z.string().min(5),
-                includeToolMatches: z.boolean().default(false),
                 maxSteps: z.number().int().positive().max(12).optional(),
                 serviceHints: z.array(z.string()).optional(),
             }),
         },
-        async ({ argumentHints, backendIds, goal, includeToolMatches, maxSteps, serviceHints }, ctx) => {
+        async ({ argumentHints, backendIds, goal, maxSteps, serviceHints }, ctx) => {
             const catalog = await registry.getCatalogEntries(backendIds);
             const candidateLimit = loadedConfig.defaults.candidateToolLimit;
             const plan = await planInvestigation({
@@ -553,10 +553,6 @@ function extractSamplingText(content: unknown): string | null {
     }
 
     return null;
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function isSamplingContext(value: unknown): value is SamplingContext {

@@ -17,7 +17,6 @@ async function main(): Promise<void> {
         },
         async () => ({
             content: [{ type: 'text', text: 'node-22\npython-3.12' }],
-            structuredContent: { runtimes: ['node-22', 'python-3.12'] },
         }),
     );
 
@@ -37,11 +36,6 @@ async function main(): Promise<void> {
                     text: JSON.stringify({ execution_id, function_id, status: 'completed' }),
                 },
             ],
-            structuredContent: {
-                execution_id,
-                function_id,
-                status: 'completed',
-            },
         }),
     );
 
@@ -60,10 +54,6 @@ async function main(): Promise<void> {
                     text: JSON.stringify({ bucket_id: bucket_id ?? 'default', files: ['invoice.pdf', 'avatar.png'] }),
                 },
             ],
-            structuredContent: {
-                bucket_id: bucket_id ?? 'default',
-                files: ['invoice.pdf', 'avatar.png'],
-            },
         }),
     );
 
@@ -87,11 +77,6 @@ async function main(): Promise<void> {
                     text: `deleted ${function_id}/${execution_id}`,
                 },
             ],
-            structuredContent: {
-                deleted: true,
-                execution_id,
-                function_id,
-            },
         }),
     );
 

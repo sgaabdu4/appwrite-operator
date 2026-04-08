@@ -5,12 +5,13 @@ import process from 'node:process';
 
 import { resolveBackendEnvironment } from './config.js';
 import { parseToolName } from './heuristics.js';
-import type {
-    BackendConfig,
-    BackendStatus,
-    CatalogEntry,
-    JsonObject,
-    OperatorConfig,
+import {
+    isObject,
+    type BackendConfig,
+    type BackendStatus,
+    type CatalogEntry,
+    type JsonObject,
+    type OperatorConfig,
 } from './types.js';
 
 export class ManagedBackend {
@@ -109,14 +110,19 @@ export class ManagedBackend {
         };
 
         try {
-            await client.connect(transport);
+            await withTimeout(
+                (async () => {
+                    await client.connect(transport);
+                    const tools = await listAllTools(client);
+                    this.catalog = tools.map((tool) => toCatalogEntry(tool, this.config));
+                })(),
+                30_000,
+                `Backend ${this.config.id} connection timed out after 30s.`,
+            );
             this.client = client;
             this.transport = transport;
             this.lastConnectedAt = new Date().toISOString();
             this.lastError = undefined;
-
-            const tools = await listAllTools(client);
-            this.catalog = tools.map((tool) => toCatalogEntry(tool, this.config));
         } catch (error) {
             this.lastError = toErrorMessage(error, this.stderrLines);
             await transport.close();
@@ -200,8 +206,9 @@ export class BackendRegistry {
         const results: CatalogEntry[] = [];
 
         for (const backend of selected) {
-            const catalog = await backend.refreshCatalog();
-            results.push(...catalog);
+            await backend.ensureConnected();
+            const cached = backend.getCatalog();
+            results.push(...(cached.length > 0 ? cached : await backend.refreshCatalog()));
         }
 
         return results;
@@ -302,10 +309,6 @@ function toCatalogEntry(tool: Tool, backend: BackendConfig): CatalogEntry {
     };
 }
 
-function isObject(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 function toErrorMessage(error: unknown, stderrLines: string[]): string {
     const suffix = stderrLines.length > 0 ? ` stderr: ${stderrLines.at(-1)}` : '';
     if (error instanceof Error) {
@@ -313,4 +316,14 @@ function toErrorMessage(error: unknown, stderrLines: string[]): string {
     }
 
     return `${String(error)}${suffix}`;
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error(message)), ms);
+        promise.then(
+            (value) => { clearTimeout(timer); resolve(value); },
+            (error) => { clearTimeout(timer); reject(error as Error); },
+        );
+    });
 }

@@ -1,5 +1,3 @@
-import type { Tool } from '@modelcontextprotocol/client';
-
 export type JsonPrimitive = boolean | null | number | string;
 export type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
 export type JsonObject = { [key: string]: JsonValue };
@@ -97,4 +95,6 @@ export type SamplingPlanShape = {
     summary?: unknown;
 };
 
-export type AppwriteTool = Tool;
+export function isObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
