@@ -4,7 +4,7 @@
 [![npm](https://img.shields.io/npm/v/appwrite-operator-mcp)](https://www.npmjs.com/package/appwrite-operator-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-An MCP server that wraps the official [mcp-server-appwrite](https://github.com/appwrite/mcp-server-appwrite) behind **4 smart tools** instead of exposing hundreds of raw Appwrite tools directly to your AI agent.
+An MCP server that wraps the official [mcp-server-appwrite](https://github.com/appwrite/mcp-for-api) behind **4 smart tools** instead of exposing hundreds of raw Appwrite tools directly to your AI agent.
 
 > **New to MCP?** [Model Context Protocol](https://modelcontextprotocol.io) is an open standard that lets AI assistants (Claude, Copilot, Cursor, etc.) call external tools. An MCP server is a small program that exposes those tools. This project is an MCP server for [Appwrite](https://appwrite.io) — an open-source backend-as-a-service platform.
 
