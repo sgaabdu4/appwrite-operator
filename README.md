@@ -1,5 +1,27 @@
 # Appwrite Operator MCP
 
+> ## ⚠️ DEPRECATED
+>
+> **This package is no longer maintained.** As of [`mcp-server-appwrite` v0.4.1](https://pypi.org/project/mcp-server-appwrite/) (April 2026), the official Appwrite MCP server now includes built-in operator-style functionality — adopting the architecture this project pioneered:
+>
+> - Only 2 tools exposed to the model (`appwrite_search_tools`, `appwrite_call_tool`)
+> - Full Appwrite tool catalog stays internal and is searched at runtime
+> - Large outputs stored as MCP resources
+> - Mutating tools require `confirm_write=true`
+>
+> **Use the official server directly:**
+>
+> ```
+> uvx mcp-server-appwrite
+> ```
+>
+> See the [official docs](https://pypi.org/project/mcp-server-appwrite/) for configuration.
+
+---
+
+<details>
+<summary>Original README (archived)</summary>
+
 [![CI](https://github.com/sgaabdu4/appwrite-operator/actions/workflows/ci.yml/badge.svg)](https://github.com/sgaabdu4/appwrite-operator/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/appwrite-operator-mcp)](https://www.npmjs.com/package/appwrite-operator-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -131,7 +153,7 @@ No cloning, no building. Your MCP client downloads and runs the operator automat
 }
 ```
 
-Replace `your-project-id`, `your-api-key`, and `https://cloud.appwrite.io/v1` with your actual Appwrite credentials. The operator spawns `uvx mcp-server-appwrite --all` automatically.
+Replace `your-project-id`, `your-api-key`, and `https://cloud.appwrite.io/v1` with your actual Appwrite credentials. The operator spawns `uvx mcp-server-appwrite` automatically.
 
 ### Option B: Clone and Build (Local Development)
 
@@ -171,7 +193,7 @@ For advanced setups with multiple Appwrite projects or custom backend commands, 
       "id": "production",
       "label": "Production",
       "command": "uvx",
-      "args": ["--with", "appwrite<16.0.0", "mcp-server-appwrite", "--all"],
+      "args": ["--with", "appwrite<16.0.0", "mcp-server-appwrite"],
       "env": {
         "APPWRITE_PROJECT_ID": "${PROD_PROJECT_ID}",
         "APPWRITE_API_KEY": "${PROD_API_KEY}",
@@ -182,7 +204,7 @@ For advanced setups with multiple Appwrite projects or custom backend commands, 
       "id": "staging",
       "label": "Staging",
       "command": "uvx",
-      "args": ["--with", "appwrite<16.0.0", "mcp-server-appwrite", "--all"],
+      "args": ["--with", "appwrite<16.0.0", "mcp-server-appwrite"],
       "env": {
         "APPWRITE_PROJECT_ID": "${STAGING_PROJECT_ID}",
         "APPWRITE_API_KEY": "${STAGING_API_KEY}",
@@ -327,3 +349,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, architecture, and 
 ## License
 
 MIT
+
+</details>

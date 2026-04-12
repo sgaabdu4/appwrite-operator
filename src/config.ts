@@ -107,5 +107,5 @@ function readInlineBackendArgs(): string[] {
     return args.split(/\s+/).filter(Boolean);
   }
 
-  return ['--with', 'appwrite<16.0.0', 'mcp-server-appwrite', '--all'];
+  return ['--with', 'appwrite<16.0.0', 'mcp-server-appwrite'];
 }
